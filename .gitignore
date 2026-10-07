@@ -1,0 +1,26 @@
+# dependencies
+/node_modules
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/
+playwright-results.json
+/playwright-snapshots/
+
+# misc
+.DS_Store
+*.pem
+.env*.local
+.env
+*.log
+npm-debug.log*
+*.tsbuildinfo
+
