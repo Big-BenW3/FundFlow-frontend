@@ -3,6 +3,7 @@
 /* Campaign hero: cover, progress, collection account (part of campaign page). */
 
 import Link from "next/link";
+import { useState } from "react";
 import {
   Badge,
   Button,
@@ -157,6 +158,18 @@ function ProgressCard({
 }
 
 function CollectionCard({ campaign }: { campaign: Campaign }) {
+  const [copied, setCopied] = useState(false);
+  const accountNumber = campaign.account?.account_number ?? "";
+  async function copy() {
+    if (!accountNumber) return;
+    try {
+      await navigator.clipboard.writeText(accountNumber);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      setCopied(false);
+    }
+  }
   return (
     <>
       <CardHeader>
@@ -170,17 +183,28 @@ function CollectionCard({ campaign }: { campaign: Campaign }) {
           <p className="text-xs font-bold uppercase tracking-wider text-muted">
             {campaign.account?.bank_name ?? "Account"}
           </p>
-          <p className="mt-1 text-xl font-extrabold tracking-wide">
-            {campaign.account?.account_number ?? "Pending"}
-          </p>
+          <div className="mt-1 flex items-center justify-between gap-2">
+            <p className="text-xl font-extrabold tracking-wide">
+              {campaign.account?.account_number ?? "Pending"}
+            </p>
+            {accountNumber && (
+              <button
+                onClick={copy}
+                className="shrink-0 rounded-md border border-hairline bg-white px-2.5 py-1.5 text-xs font-bold hover:border-ink/50"
+              >
+                {copied ? "Copied" : "Copy"}
+              </button>
+            )}
+          </div>
           <p className="mt-1 break-all font-mono text-xs text-body">
             ref: {campaign.account?.account_reference ?? "pending"}
           </p>
         </div>
-        <p className="mt-3 text-[13px] text-body">
-          Bank transfer is the fastest way in. Web contributions confirm here
-          automatically.
-        </p>
+        <ol className="mt-3 list-decimal space-y-1 pl-5 text-[13px] text-body">
+          <li>Choose Bank transfer or Card in the Contribute dialog.</li>
+          <li>Bank transfer: copy this account number and send from any bank app.</li>
+          <li>Wait for the Kora webhook — status flips from PENDING to SUCCESS here.</li>
+        </ol>
       </CardContent>
     </>
   );

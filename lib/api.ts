@@ -1,7 +1,15 @@
-// API client + shared helpers.
+// API client + shared helpers + Kora env wiring.
 
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000/api/v1";
+
+export const KORA_PUBLIC_KEY = process.env.NEXT_PUBLIC_KORA_PUBLIC_KEY ?? "";
+
+// Explicit mock flag; defaults to true unless prod key + explicit false.
+export const KORA_MOCK =
+  process.env.NEXT_PUBLIC_KORA_MOCK !== undefined
+    ? process.env.NEXT_PUBLIC_KORA_MOCK !== "false"
+    : KORA_PUBLIC_KEY === "";
 
 const TOKEN_KEY = "fundflow_token";
 

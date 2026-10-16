@@ -8,6 +8,7 @@ import React, { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/components/auth-provider";
 import { Badge, Button, cn } from "@/components/ui";
+import { KORA_MOCK } from "@/lib/api";
 import { Logo } from "@/components/logo";
 import { useNotifications } from "@/lib/queries";
 
@@ -180,7 +181,7 @@ function Footer() {
           <Link href="/dashboard" className="font-medium text-body hover:text-ink">
             Owner dashboard
           </Link>
-          <Badge tone="voltage">Demo build, mock Kora mode</Badge>
+          <Badge tone="voltage">{KORA_MOCK ? "Demo build, mock Kora mode" : "Live Kora mode"}</Badge>
         </div>
       </div>
     </footer>

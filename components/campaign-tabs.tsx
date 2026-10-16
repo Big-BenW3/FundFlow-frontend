@@ -216,11 +216,20 @@ export function ActivityTab({
           {contributions.map((c) => (
             <div
               key={c.id}
-              className="flex items-center justify-between rounded-md border border-hairline bg-white px-4 py-3"
+              className="flex items-center justify-between gap-3 rounded-md border border-hairline bg-white px-4 py-3"
             >
               <div>
                 <p className="text-sm font-bold">{c.contributor.name ?? "Someone"}</p>
-                <p className="text-[13px] text-muted">{formatDateTime(c.created_at)}</p>
+                <p className="text-[13px] text-muted">
+                  {formatDateTime(c.created_at)} · {c.payment_method}
+                  {c.payer_bank_name ? ` · ${c.payer_bank_name}` : ""}
+                </p>
+                {c.status === "PENDING" && (
+                  <p className="text-xs text-muted">Waiting on Kora webhook…</p>
+                )}
+                {c.status === "FAILED" && (
+                  <p className="text-xs text-danger">Failed verification — check reference/amount.</p>
+                )}
               </div>
               <div className="text-right">
                 <p className="text-sm font-extrabold">{naira(c.amount)}</p>

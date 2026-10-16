@@ -10,7 +10,7 @@ import { Input, Textarea } from "@/components/forms";
 import { useAuth } from "@/components/auth-provider";
 import { ApiError, api, formatDateTime, naira } from "@/lib/api";
 import { useCampaignById, useContributions, useMilestones, useMembers } from "@/lib/queries";
-import type { AuditEntry, Beneficiary, CampaignUpdate, Payout } from "@/types";
+import type { AuditEntry, Bank, Beneficiary, CampaignUpdate, Payout } from "@/types";
 
 const STATUS_TONE: Record<string, "success" | "warning" | "info" | "default" | "dark" | "danger"> = {
   SUCCESS: "success", FAILED: "danger", PENDING: "warning", PROCESSING: "info",
@@ -107,10 +107,11 @@ function ContributionsTab({ campaignId }: { campaignId: number }) {
   return (
     <Card className="overflow-hidden">
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] text-left text-sm">
+        <table className="w-full min-w-[720px] text-left text-sm">
           <thead><tr className="border-b border-hairline bg-soft text-[13px] text-muted">
             <th className="px-5 py-3 font-semibold">Date</th><th className="px-5 py-3 font-semibold">Contributor</th>
-            <th className="px-5 py-3 text-right font-semibold">Amount</th><th className="px-5 py-3 font-semibold">Status</th>
+            <th className="px-5 py-3 text-right font-semibold">Amount</th><th className="px-5 py-3 font-semibold">Method</th>
+            <th className="px-5 py-3 font-semibold">Status</th>
             <th className="px-5 py-3 font-semibold">Reference</th>
           </tr></thead>
           <tbody>
@@ -119,6 +120,7 @@ function ContributionsTab({ campaignId }: { campaignId: number }) {
                 <td className="px-5 py-3.5 text-body">{formatDateTime(c.created_at)}</td>
                 <td className="px-5 py-3.5 font-semibold">{c.contributor.name}{c.anonymous && <span className="ml-1 text-muted">(anon)</span>}</td>
                 <td className="px-5 py-3.5 text-right font-extrabold">{naira(c.amount)}</td>
+                <td className="px-5 py-3.5 text-body">{c.payment_method}</td>
                 <td className="px-5 py-3.5"><Badge tone={STATUS_TONE[c.status] ?? "default"}>{c.status}</Badge></td>
                 <td className="px-5 py-3.5 font-mono text-xs text-muted">{c.kora_reference}</td>
               </tr>
@@ -229,6 +231,14 @@ function ApproveMilestoneButton({ milestoneId }: { milestoneId: number }) {
 
 function BeneficiariesTab({ campaignId }: { campaignId: number }) {
   const query = useQuery({ queryKey: ["beneficiaries", campaignId], queryFn: () => api.get<Beneficiary[]>(`/campaigns/${campaignId}/beneficiaries`) });
+  const banksQuery = useQuery({
+    queryKey: ["banks"],
+    queryFn: async () => {
+      const body = await api.get<{ banks: Bank[]; mode: string }>("/banks");
+      return body.banks;
+    },
+    staleTime: 60_000,
+  });
   const [showForm, setShowForm] = useState(false);
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
@@ -236,6 +246,7 @@ function BeneficiariesTab({ campaignId }: { campaignId: number }) {
   const [accountNumber, setAccountNumber] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [verifyingId, setVerifyingId] = useState<number | null>(null);
 
   async function addBeneficiary() {
     setError(""); setBusy(true);
@@ -246,6 +257,14 @@ function BeneficiariesTab({ campaignId }: { campaignId: number }) {
     } catch (e) { setError(e instanceof ApiError ? e.message : "Failed"); } finally { setBusy(false); }
   }
 
+  async function reverify(id: number) {
+    setVerifyingId(id);
+    try {
+      await api.post(`/beneficiaries/${id}/verify`);
+      void queryClient.invalidateQueries({ queryKey: ["beneficiaries", campaignId] });
+    } catch (e) { setError(e instanceof ApiError ? e.message : "Re-verify failed"); } finally { setVerifyingId(null); }
+  }
+
   if (query.isLoading) return <Skeleton className="h-64 w-full" />;
   const rows = query.data ?? [];
   return (
@@ -254,7 +273,19 @@ function BeneficiariesTab({ campaignId }: { campaignId: number }) {
       {showForm && (
         <Card className="mb-4"><CardContent className="flex flex-col gap-3">
           <Input label="Name" value={name} onChange={e => setName(e.target.value)} />
-          <Input label="Bank Code" value={bankCode} onChange={e => setBankCode(e.target.value)} placeholder="033" />
+          <label className="block">
+            <span className="mb-1 block text-[13px] font-semibold text-ink">Bank</span>
+            <select
+              value={bankCode}
+              onChange={e => setBankCode(e.target.value)}
+              className="h-12 w-full rounded-md border border-hairline bg-white px-4 text-sm focus:border-ink/60 focus:outline-none focus:ring-2 focus:ring-ink/20"
+            >
+              <option value="">{banksQuery.isLoading ? "Loading banks…" : "Select bank"}</option>
+              {(banksQuery.data ?? []).map((b) => (
+                <option key={b.code} value={b.code}>{b.name} ({b.code})</option>
+              ))}
+            </select>
+          </label>
           <Input label="Account Number" value={accountNumber} onChange={e => setAccountNumber(e.target.value)} placeholder="1234567890" />
           {error && <p className="text-sm text-danger">{error}</p>}
           <Button disabled={busy || !name || !bankCode || !accountNumber} onClick={addBeneficiary}>{busy ? "Verifying…" : "Add & Verify"}</Button>
@@ -263,9 +294,22 @@ function BeneficiariesTab({ campaignId }: { campaignId: number }) {
       {rows.length === 0 ? <EmptyState title="No beneficiaries yet" /> : (
         <div className="flex flex-col gap-3">
           {rows.map((b) => (
-            <Card key={b.id}><CardContent className="flex items-center justify-between">
-              <div><p className="text-sm font-extrabold">{b.name}</p><p className="text-xs text-muted">{b.bank_name} · {b.account_number}</p></div>
-              <Badge tone={STATUS_TONE[b.verification_status] ?? "default"}>{b.verification_status}</Badge>
+            <Card key={b.id}><CardContent className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-extrabold">{b.name}</p>
+                <p className="text-xs text-muted">{b.bank_name} · {b.account_number}</p>
+                {b.resolved_account_name && (
+                  <p className="text-xs text-body">→ {b.resolved_account_name}</p>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <Badge tone={STATUS_TONE[b.verification_status] ?? "default"}>{b.verification_status}</Badge>
+                {b.verification_status !== "VERIFIED" && (
+                  <Button size="sm" variant="outline" disabled={verifyingId === b.id} onClick={() => reverify(b.id)}>
+                    {verifyingId === b.id ? "…" : "Re-verify"}
+                  </Button>
+                )}
+              </div>
             </CardContent></Card>
           ))}
         </div>
