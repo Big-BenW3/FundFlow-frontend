@@ -75,7 +75,11 @@ export default function ContributeModal({
         settleQueries();
       }
     } catch (err) {
-      setMessage(err instanceof ApiError ? err.message : "Could not refresh status.");
+      if (err instanceof ApiError) {
+        setMessage(err.action ? `${err.message} ${err.action}` : err.message);
+      } else {
+        setMessage("Could not refresh status.");
+      }
     } finally {
       setChecking(false);
     }
@@ -197,7 +201,11 @@ export default function ContributeModal({
       }
     } catch (err) {
       setPhase("error");
-      setMessage(err instanceof ApiError ? err.message : "Something went wrong.");
+      if (err instanceof ApiError) {
+        setMessage(err.action ? `${err.message} ${err.action}` : err.message);
+      } else {
+        setMessage("Something went wrong.");
+      }
     }
   }
 

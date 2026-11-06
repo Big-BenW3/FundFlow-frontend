@@ -61,7 +61,7 @@ export default function CreateCampaignPage() {
         }
       );
       if (body.account_error) setAccountError(body.account_error);
-      router.push(`/campaigns/${body.campaign.slug}`);
+      router.push(`/dashboard/${body.campaign.id}?tab=settings`);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "Could not create campaign.");
     } finally {

@@ -110,7 +110,10 @@ function CampaignCard({ campaign, stats }: { campaign: Campaign; stats?: Campaig
       <Card className="group h-full overflow-hidden transition-shadow hover:shadow-pop">
         <div className="relative aspect-[16/10] overflow-hidden bg-soft">
           <img
-            src={campaign.cover_image || "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1200&q=80"}
+            src={
+              campaign.cover_image ||
+              "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='600' viewBox='0 0 1200 600'%3E%3Crect width='1200' height='600' fill='%23F3F4F6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui, sans-serif' font-size='24' fill='%239CA3AF'%3ECampaign cover%3C/text%3E%3C/svg%3E"
+            }
             alt={campaign.title}
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           />

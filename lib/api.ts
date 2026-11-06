@@ -26,6 +26,8 @@ export function setToken(token: string | null) {
 
 export class ApiError extends Error {
   status: number;
+  code?: string;
+  action?: string;
   constructor(status: number, message: string) {
     super(message);
     this.status = status;
@@ -42,13 +44,22 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 
   const response = await fetch(`${API_URL}${path}`, { ...init, headers });
   const text = await response.text();
-  const body = text ? (JSON.parse(text) as T & { detail?: string }) : ({} as T);
+  const body = text ? (JSON.parse(text) as T & { detail?: unknown }) : ({} as T);
   if (!response.ok) {
+    const detail = typeof body === "object" && body && "detail" in body ? (body as { detail: unknown }).detail : undefined;
+    if (detail && typeof detail === "object") {
+      const detailObj = detail as { message?: unknown; code?: unknown; action?: unknown };
+      const error = new ApiError(
+        response.status,
+        typeof detailObj.message === "string" ? detailObj.message : `Request failed (${response.status})`
+      );
+      if (typeof detailObj.code === "string") error.code = detailObj.code;
+      if (typeof detailObj.action === "string") error.action = detailObj.action;
+      throw error;
+    }
     throw new ApiError(
       response.status,
-      typeof body === "object" && body && "detail" in body
-        ? String((body as { detail: unknown }).detail)
-        : `Request failed (${response.status})`
+      typeof detail === "string" ? detail : `Request failed (${response.status})`
     );
   }
   return body as T;

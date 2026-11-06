@@ -228,7 +228,7 @@ export function ActivityTab({
                   <p className="text-xs text-muted">Waiting on Kora webhook…</p>
                 )}
                 {c.status === "FAILED" && (
-                  <p className="text-xs text-danger">Failed verification — check reference/amount.</p>
+                  <p className="text-xs text-danger">Failed verification, check reference or amount.</p>
                 )}
               </div>
               <div className="text-right">

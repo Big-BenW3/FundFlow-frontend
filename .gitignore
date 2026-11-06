@@ -24,3 +24,7 @@ playwright-results.json
 npm-debug.log*
 *.tsbuildinfo
 
+# test artifacts (kept locally for reference, not committed)
+/tests/screenshots/
+/tests/test-results/
+

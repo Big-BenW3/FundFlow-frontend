@@ -5,7 +5,7 @@
 import { Logo } from "@/components/logo";
 
 const PANEL_IMAGE =
-  "https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=1200&q=80";
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='800' viewBox='0 0 1200 800'%3E%3Crect width='1200' height='800' fill='%23F3F4F6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui, sans-serif' font-size='32' fill='%239CA3AF'%3ECommunity image%3C/text%3E%3C/svg%3E";
 
 export function AuthShell({
   eyebrow,

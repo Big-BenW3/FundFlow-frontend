@@ -19,7 +19,7 @@ import { formatDate, naira, timeLeft } from "@/lib/api";
 import type { Campaign, CampaignStats } from "@/types";
 
 const FALLBACK_COVER =
-  "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1600&q=80";
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='400' viewBox='0 0 800 400'%3E%3Crect width='800' height='400' fill='%23F3F4F6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui, sans-serif' font-size='24' fill='%239CA3AF'%3ECampaign cover%3C/text%3E%3C/svg%3E";
 
 type Props =
   | { state: "loading" }
@@ -48,8 +48,6 @@ export default function CampaignHero(props: Props) {
       <div className="mx-auto max-w-6xl px-4 pb-10 pt-8 sm:px-6">
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone="voltage">{campaign.category}</Badge>
-          <Badge>{campaign.visibility}</Badge>
-          {campaign.is_diaspora && <Badge tone="info">Diaspora</Badge>}
         </div>
         <h1 className="display-lg mt-4 max-w-3xl text-3xl sm:text-5xl">{campaign.title}</h1>
         <p className="mt-2 text-sm text-body">
@@ -142,8 +140,8 @@ function ProgressCard({
         </div>
       </div>
       <div className="mt-5 flex flex-wrap gap-3">
-        <Button size="lg" className="flex-1" onClick={onContribute}>
-          Contribute
+        <Button size="lg" className="flex-1" onClick={onContribute} disabled={campaign.status !== "ACTIVE"}>
+          {campaign.status === "ACTIVE" ? "Contribute" : "Setup in progress"}
         </Button>
         {isOwner && (
           <Link href={`/dashboard/${campaign.id}`}>
@@ -153,6 +151,11 @@ function ProgressCard({
           </Link>
         )}
       </div>
+      {campaign.status !== "ACTIVE" && (
+        <p className="mt-3 text-sm text-body">
+          This campaign is still being set up. Contributions will open once the owner activates it and the collection account is ready.
+        </p>
+      )}
     </CardContent>
   );
 }
@@ -203,7 +206,7 @@ function CollectionCard({ campaign }: { campaign: Campaign }) {
         <ol className="mt-3 list-decimal space-y-1 pl-5 text-[13px] text-body">
           <li>Choose Bank transfer or Card in the Contribute dialog.</li>
           <li>Bank transfer: copy this account number and send from any bank app.</li>
-          <li>Wait for the Kora webhook — status flips from PENDING to SUCCESS here.</li>
+          <li>Wait for the Kora webhook. Status flips from PENDING to SUCCESS here.</li>
         </ol>
       </CardContent>
     </>

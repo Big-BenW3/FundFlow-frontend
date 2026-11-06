@@ -10,7 +10,7 @@ import { Input, Textarea } from "@/components/forms";
 import { useAuth } from "@/components/auth-provider";
 import { ApiError, api, formatDateTime, naira } from "@/lib/api";
 import { useCampaignById, useContributions, useMilestones, useMembers } from "@/lib/queries";
-import type { AuditEntry, Bank, Beneficiary, CampaignUpdate, Payout } from "@/types";
+import type { AuditEntry, Bank, Beneficiary, Campaign, CampaignUpdate, Payout } from "@/types";
 
 const STATUS_TONE: Record<string, "success" | "warning" | "info" | "default" | "dark" | "danger"> = {
   SUCCESS: "success", FAILED: "danger", PENDING: "warning", PROCESSING: "info",
@@ -18,7 +18,7 @@ const STATUS_TONE: Record<string, "success" | "warning" | "info" | "default" | "
   LOCKED: "warning", DRAFT: "default", VERIFIED: "success",
 };
 
-type Tab = "overview" | "contributions" | "milestones" | "payouts" | "beneficiaries" | "updates" | "members" | "audit";
+type Tab = "overview" | "contributions" | "milestones" | "payouts" | "beneficiaries" | "updates" | "members" | "settings" | "audit";
 
 export default function CampaignManagePage() {
   const params = useParams<{ id: string }>();
@@ -40,7 +40,7 @@ export default function CampaignManagePage() {
   const tabs: Array<[Tab, string]> = [
     ["overview", "Overview"], ["contributions", "Contributions"], ["milestones", "Milestones"],
     ["payouts", "Payouts"], ["beneficiaries", "Beneficiaries"], ["updates", "Updates"],
-    ["members", "Members"], ["audit", "Audit Log"],
+    ["members", "Members"], ["settings", "Settings"], ["audit", "Audit Log"],
   ];
 
   return (
@@ -74,7 +74,100 @@ export default function CampaignManagePage() {
         {tab === "beneficiaries" && <BeneficiariesTab campaignId={campaignId} />}
         {tab === "updates" && <UpdatesTab campaignId={campaignId} />}
         {tab === "members" && <MembersTab campaignId={campaignId} />}
+        {tab === "settings" && <SettingsTab campaign={campaign} />}
         {tab === "audit" && <AuditTab campaignId={campaignId} />}
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------ Settings Tab ------------------------------ */
+
+function SettingsTab({ campaign }: { campaign: Campaign }) {
+  const queryClient = useQueryClient();
+  const [title, setTitle] = useState(campaign.title);
+  const [description, setDescription] = useState(campaign.description ?? "");
+  const [targetAmount, setTargetAmount] = useState(String(campaign.target_amount ?? ""));
+  const [statusMessage, setStatusMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [activating, setActivating] = useState(false);
+
+  async function saveChanges() {
+    setBusy(true);
+    setStatusMessage("");
+    try {
+      await api.patch(`/campaigns/${campaign.id}`, {
+        title,
+        description,
+        target_amount: Number(targetAmount),
+      });
+      void queryClient.invalidateQueries({ queryKey: ["campaign-id", campaign.id] });
+      setStatusMessage("Campaign settings saved.");
+    } catch (error) {
+      setStatusMessage(error instanceof ApiError ? error.message : "Failed to save campaign settings.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function activate() {
+    setActivating(true);
+    setStatusMessage("");
+    try {
+      await api.post<{ campaign: Campaign }>(`/campaigns/${campaign.id}/activate`);
+      void queryClient.invalidateQueries({ queryKey: ["campaign-id", campaign.id] });
+      void queryClient.invalidateQueries({ queryKey: ["overview"] });
+      setStatusMessage("Campaign activated and collection account created.");
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setStatusMessage(error.action ? `${error.message} ${error.action}` : error.message);
+      } else {
+        setStatusMessage("Activation failed.");
+      }
+    } finally {
+      setActivating(false);
+    }
+  }
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+      <Card>
+        <CardHeader>
+          <CardTitle>Campaign details</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <Input label="Title" value={title} onChange={(event) => setTitle(event.target.value)} />
+          <Textarea label="Description" value={description} onChange={(event) => setDescription(event.target.value)} />
+          <Input label="Target amount" value={targetAmount} onChange={(event) => setTargetAmount(event.target.value)} />
+          <Button disabled={busy} onClick={saveChanges}>{busy ? "Saving…" : "Save changes"}</Button>
+          {statusMessage && <p className="text-sm text-body">{statusMessage}</p>}
+        </CardContent>
+      </Card>
+
+      <div className="flex flex-col gap-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Setup status</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-body">
+            <p><strong>Status:</strong> {campaign.status}</p>
+            <p><strong>Collection account:</strong> {campaign.account ? campaign.account.account_number : "Not created"}</p>
+            <p><strong>Contributions:</strong> {campaign.status === "ACTIVE" && campaign.account ? "Enabled" : "Disabled"}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Activate campaign</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-body">
+              Test mode uses Kora sandbox behavior without production KYC. Live mode should require the owner verification path before activation.
+            </p>
+            <Button disabled={activating || campaign.status === "ACTIVE"} onClick={activate}>
+              {activating ? "Activating…" : campaign.status === "ACTIVE" ? "Already active" : "Verify & activate"}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

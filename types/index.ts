@@ -2,6 +2,7 @@
 
 export type Visibility = "PUBLIC" | "UNLISTED" | "PRIVATE";
 export type CampaignStatus = "DRAFT" | "ACTIVE" | "PAUSED" | "COMPLETED" | "CANCELLED";
+export type KoraMode = "mock" | "test" | "live";
 
 export interface OwnerRef {
   id: number;
@@ -44,6 +45,7 @@ export interface Campaign {
   progress: number;
   deadline: string | null;
   status: CampaignStatus;
+  can_accept_contributions?: boolean;
   cover_image: string | null;
   is_diaspora: boolean;
   created_at: string;
@@ -200,5 +202,6 @@ export interface User {
   name: string;
   phone: string | null;
   role: string;
+  kyc_status?: string;
   created_at: string;
 }

@@ -7,8 +7,7 @@ import { usePathname, useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider, useAuth } from "@/components/auth-provider";
-import { Badge, Button, cn } from "@/components/ui";
-import { KORA_MOCK } from "@/lib/api";
+import { Button, cn } from "@/components/ui";
 import { Logo } from "@/components/logo";
 import { useNotifications } from "@/lib/queries";
 
@@ -121,8 +120,6 @@ function NavInner({ children }: { children: React.ReactNode }) {
       </header>
 
       <main className="flex-1">{children}</main>
-
-      <Footer />
     </div>
   );
 }
@@ -158,33 +155,6 @@ function UserMenu({
         Sign out
       </Button>
     </>
-  );
-}
-
-function Footer() {
-  return (
-    <footer className="border-t border-hairline bg-soft">
-      <div className="mx-auto flex max-w-6xl flex-col gap-5 px-4 py-7 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-        <div className="flex items-center gap-3">
-          <Logo size={26} />
-          <p className="max-w-md text-[13px] leading-relaxed text-body">
-            Programmable fundraising infrastructure. Raise, track and release funds by rule, powered by Kora.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]">
-          <Link href="/campaigns" className="font-medium text-body hover:text-ink">
-            All campaigns
-          </Link>
-          <Link href="/create" className="font-medium text-body hover:text-ink">
-            Start a campaign
-          </Link>
-          <Link href="/dashboard" className="font-medium text-body hover:text-ink">
-            Owner dashboard
-          </Link>
-          <Badge tone="voltage">{KORA_MOCK ? "Demo build, mock Kora mode" : "Live Kora mode"}</Badge>
-        </div>
-      </div>
-    </footer>
   );
 }
 
