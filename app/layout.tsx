@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   openGraph: {
     images: [
       {
-        url: "/images/hero-community.jpg",
+        url: "https://images.unsplash.com/photo-1761666520005-3ffcf13e74c8?auto=format&fit=crop&w=1920&q=80",
         width: 1920,
         height: 1080,
         alt: "FundFlow community fundraising hero",
