@@ -5,11 +5,10 @@ import { Button } from "@/components/ui";
 import { Skeleton, SkeletonSection, SkeletonCampaignCard } from "@/components/ui";
 import type { Campaign } from "@/types";
 
-const PLACEHOLDER_SVG =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='400' viewBox='0 0 800 400'%3E%3Crect width='800' height='400' fill='%23F3F4F6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui, sans-serif' font-size='24' fill='%239CA3AF'%3ECampaign image%3C/text%3E%3C/svg%3E";
 
+// Photos are from Unsplash (free to use, hotlinking allowed).
 const HERO_IMAGE =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080' viewBox='0 0 1920 1080'%3E%3Crect width='1920' height='1080' fill='%23F3F4F6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='system-ui, sans-serif' font-size='48' fill='%239CA3AF'%3ECommunity fundraising hero%3C/text%3E%3C/svg%3E";
+  "https://images.unsplash.com/photo-1761666520005-3ffcf13e74c8?auto=format&fit=crop&w=1920&q=80";
 
 const MOCK_CAMPAIGNS: Campaign[] = [
   {
@@ -27,7 +26,8 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     progress: 37.5,
     deadline: "2027-03-15",
     status: "ACTIVE",
-    cover_image: PLACEHOLDER_SVG,
+    cover_image:
+      "https://images.unsplash.com/photo-1536064479547-7ee40b74b807?auto=format&fit=crop&w=1200&q=80",
     is_diaspora: false,
     created_at: "2026-09-01T00:00:00Z",
     updated_at: "2026-09-01T00:00:00Z",
@@ -68,7 +68,8 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     progress: 82,
     deadline: "2027-01-20",
     status: "ACTIVE",
-    cover_image: PLACEHOLDER_SVG,
+    cover_image:
+      "https://images.unsplash.com/photo-1738956312126-01ba60788071?auto=format&fit=crop&w=1200&q=80",
     is_diaspora: true,
     created_at: "2026-08-10T00:00:00Z",
     updated_at: "2026-08-10T00:00:00Z",
@@ -109,7 +110,8 @@ const MOCK_CAMPAIGNS: Campaign[] = [
     progress: 76.25,
     deadline: "2026-12-10",
     status: "ACTIVE",
-    cover_image: PLACEHOLDER_SVG,
+    cover_image:
+      "https://images.unsplash.com/photo-1735792339621-2846f164b78f?auto=format&fit=crop&w=1200&q=80",
     is_diaspora: false,
     created_at: "2026-07-20T00:00:00Z",
     updated_at: "2026-07-20T00:00:00Z",
